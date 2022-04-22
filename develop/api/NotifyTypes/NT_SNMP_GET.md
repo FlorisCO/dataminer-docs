@@ -40,7 +40,7 @@ int agentId = protocol.DataMinerID; // For DELT compatibility.
 
 object[] elementInfo = new object[] { elementID, ipPort, multipleGet, instancePart, connectionID, getCommunityString, splitErrors, agentId };
 
-string[] oidInfo = new string[] { "1.3.6.1.2.1.10.127.7.1.11.1.3:tablev2" };
+string[] oidInfo = new string[] { "1.3.6.1.2.1.10.127.7.1.11.1.2;1.3.6.1.2.1.10.127.7.1.11.1.3:tablev2" };
 object[] response = (object[]) protocol.NotifyProtocol(295/*NT_SNMP_GET*/, elementInfo, oidInfo);
 object[] result = null;
 
@@ -51,12 +51,14 @@ if (response.Length == 1)
     if (result.Length > 1)
     {
         object[] instances = (object[])result[0];
-        object[] values = (object[])result[1];
+        object[] firstColumnValues = (object[])result[1];
+        object[] secondColumnValues = (object[])result[2];
 
         for (int i = 0; i < instances.Length; i++)
         {
             string instance = Convert.ToString(instances[i]);
-            string value = Convert.ToString(values[i]);
+            string firstValue = Convert.ToString(firstColumnValues[i]);
+            string secondValue = Convert.ToString(secondColumnValues[i]);
         }
     }
 }
@@ -157,7 +159,22 @@ if (response.Length == 1)
     - INSTANCE
     - GETNEXT
 
-    Default value for METHOD: Multiple get
+    Default behavior for METHOD: Multiple get
+
+### METHOD SINGLE
+
+### METHOD TABLE
+This method will request a table using the getnext or getnext+multipleget scheme. Multiple OIDs need to be separated by a semicolon.
+    - If there's only one OID, it will use getnext to retrieve all values under that OID, so either the column or full table as a single list.
+    - If additional OIDs are provided, it will use the instances retrieved through the first OID to do a multipleget (if enabled) to retrieve the other columns.
+
+### METHOD TABLEv2
+This method will request a set of table columns using the multipleGetNext scheme. Multiple OIDs need to be separated by a semicolon.
+Provide the column OIDs as a semicolon-separated list, and the response will be an array of columns where the first column contains the instance of the values.
+
+### METHOD INSTANCE
+
+### METHOD GETNEXT
 
 ## Return Value
 
